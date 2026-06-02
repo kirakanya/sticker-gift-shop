@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เช็กสถานะออเดอร์ | StickerGift</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body>
+  <main class="container">
+    <section class="card">
+      <p class="tag">📦 Order Status</p>
+      <h1>เช็กสถานะออเดอร์</h1>
+
+      <p class="muted">
+        กรอกเลขออเดอร์ที่ได้รับหลังสั่งซื้อ เพื่อตรวจสอบสถานะล่าสุด
+      </p>
+
+      <form id="statusForm">
+        <label>
+          เลขออเดอร์
+          <input
+            id="orderId"
+            type="text"
+            placeholder="เช่น abc123xxxx"
+            required
+          />
+        </label>
+
+        <button type="submit">เช็กสถานะ</button>
+      </form>
+
+      <div id="statusResult"></div>
+    </section>
+
+    <p style="text-align:center; margin-top:20px;">
+      <a href="/">กลับหน้าร้าน</a>
+    </p>
+  </main>
+
+  <script src="/status.js"></script>
+</body>
+</html>

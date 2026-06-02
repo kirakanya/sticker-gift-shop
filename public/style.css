@@ -1,0 +1,287 @@
+:root {
+  --bg: #fff7fb;
+  --card: #ffffff;
+  --ink: #24121d;
+  --muted: #7a6470;
+  --primary: #ff4fa3;
+  --primary-dark: #d62d7c;
+  --line: #f1d8e5;
+  --soft: #ffe4f1;
+  --danger: #e11d48;
+  --success: #16a34a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #ffe0f0, transparent 35%), var(--bg);
+  color: var(--ink);
+}
+
+a {
+  color: var(--primary-dark);
+}
+
+.hero {
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+nav,
+.admin-head,
+.order-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 24px;
+}
+
+.admin-link {
+  text-decoration: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.hero-grid {
+  max-width: 1120px;
+  margin: 54px auto 36px;
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.tag {
+  display: inline-block;
+  color: var(--primary-dark);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+}
+
+h1 {
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.02;
+  margin: 14px 0;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.desc,
+.muted {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.price-card,
+.card,
+.order-card {
+  background: rgba(255,255,255,0.86);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(214,45,124,0.12);
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.container {
+  width: min(960px, calc(100% - 32px));
+  margin: 28px auto 60px;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  font: inherit;
+  background: #fff;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 18px;
+  padding: 14px 18px;
+  background: var(--primary);
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: var(--primary-dark);
+}
+
+.payment-box {
+  background: #fff0f7;
+  border: 1px dashed var(--primary);
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.success,
+.notice,
+.error {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+}
+
+.success {
+  background: #ecfdf5;
+  color: var(--success);
+}
+
+.error {
+  background: #fff1f2;
+  color: var(--danger);
+}
+
+.notice {
+  background: #fff8e1;
+}
+
+.howto {
+  margin-top: 28px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.steps div {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.steps b {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: grid;
+  place-items: center;
+}
+
+.orders {
+  display: grid;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.actions button {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+@media (max-width: 760px) {
+  .hero-grid,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  nav,
+  .admin-head,
+  .order-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #fff0f7;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.stat-card b {
+  color: var(--primary-dark);
+}
+
+.stat-card span {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.line-id {
+  background: #fff0f7;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.mini-btn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+@media (max-width: 760px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+}

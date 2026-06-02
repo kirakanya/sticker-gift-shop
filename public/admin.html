@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>หลังบ้าน | StickerGift</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body>
+  <main class="container">
+    <div class="admin-head">
+      <div>
+        <p class="tag">🛠️ Admin Dashboard</p>
+        <h1>จัดการออเดอร์ร้านสติ๊กเกอร์</h1>
+      </div>
+
+      <a href="/" class="admin-link">กลับหน้าร้าน</a>
+    </div>
+
+    <section id="dashboard" class="dashboard">
+      <div class="stat-card">
+        <b>💰 ยอดขายวันนี้</b>
+        <span>กำลังโหลด...</span>
+      </div>
+
+      <div class="stat-card">
+        <b>📦 ออเดอร์วันนี้</b>
+        <span>กำลังโหลด...</span>
+      </div>
+
+      <div class="stat-card">
+        <b>💸 ยอดขายทั้งหมด</b>
+        <span>กำลังโหลด...</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+        <button id="backupBtn">📥 ดาวน์โหลด Backup</button>
+        <button id="refreshBtn">🔄 รีเฟรชออเดอร์</button>
+      </div>
+
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="ค้นหา: ชื่อลูกค้า / LINE ID / เลขออเดอร์ / สถานะ / ยอดเงิน"
+        style="margin-bottom:20px;"
+      />
+
+      <h2>รายการออเดอร์ทั้งหมด</h2>
+
+      <p class="muted">
+        ค้นหาได้จากชื่อ ลูกค้า LINE ID ช่องทางติดต่อ เลขออเดอร์ ลิงก์สินค้า สถานะ หรือยอดเงิน
+      </p>
+
+      <div id="orders" class="orders">กำลังโหลด...</div>
+    </section>
+  </main>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

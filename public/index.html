@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sticker Gift Shop</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <div class="logo">StickerGift</div>
+      <a href="/admin.html" class="admin-link">หลังบ้าน</a>
+    </nav>
+
+    <section class="hero-grid">
+      <div>
+        <p class="tag">รับสติ๊กเกอร์ LINE เป็นของขวัญ ราคาน่ารัก</p>
+        <h1>ส่งลิงก์สติ๊กเกอร์ + LINE ID ผู้รับ แล้วรอรับของขวัญได้เลย</h1>
+        <p class="desc">
+          ระบบรับออเดอร์พร้อมสลิป แจ้งเตือนเข้า Discord เหมาะสำหรับร้านเล็กที่อยากเริ่มแบบเป็นระบบ
+        </p>
+      </div>
+
+      <div class="price-card">
+        <h2>ตัวอย่างราคา</h2>
+        <div class="price-row"><span>สติ๊กเกอร์ทั่วไป</span><b>เริ่ม 29฿</b></div>
+        <div class="price-row"><span>ธีม LINE</span><b>เริ่ม 59฿</b></div>
+        <div class="price-row"><span>อิโมจิ LINE</span><b>เริ่ม 29฿</b></div>
+        <small>ราคาให้แอดมินปรับตามต้นทุนจริง</small>
+      </div>
+    </section>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>ฟอร์มสั่งซื้อ</h2>
+      <p class="muted">กรอกข้อมูลให้ครบ หลังส่งออเดอร์แอดมินจะตรวจและจัดส่งเป็นของขวัญ</p>
+
+      <form id="orderForm">
+        <label>
+          ลิงก์สติ๊กเกอร์ / ธีม LINE
+          <input name="stickerUrl" type="url" placeholder="https://store.line.me/stickershop/product/..." required />
+        </label>
+
+        <label>
+          LINE ID ผู้รับของขวัญ
+          <input name="receiverLineId" type="text" placeholder="เช่น pakgard_123" required />
+        </label>
+
+        <label>
+          ชื่อลูกค้า
+          <input name="customerName" type="text" placeholder="ชื่อเล่น/ชื่อจริง" required />
+        </label>
+
+        <label>
+          ช่องทางติดต่อกลับ
+          <input name="customerContact" type="text" placeholder="LINE / IG / เบอร์โทร" required />
+        </label>
+
+        <label>
+          ยอดโอนเงิน
+          <input name="amount" type="number" min="1" step="1" placeholder="เช่น 29" required />
+        </label>
+
+        <label>
+          หมายเหตุ
+          <textarea name="note" placeholder="เช่น ส่งให้เร็วที่สุด / ซื้อเป็นของขวัญให้เพื่อน"></textarea>
+        </label>
+
+        <section class="payment-box">
+          <h3>โอนเงินเข้าบัญชีร้าน</h3>
+          <p>ธนาคาร: กสิกรไทย</p>
+          <p>เลขบัญชี: <b>127-356-1109</b></p>
+          <p>ชื่อบัญชี: <b>กิรกัลยาณ์ วันทอง</b></p>
+          <small></small>
+        </section>
+
+        <label>
+          อัปโหลดสลิป
+          <input name="slip" type="file" accept="image/png,image/jpeg,image/webp" required />
+        </label>
+
+        <button type="submit">ส่งออเดอร์</button>
+      </form>
+
+      <div id="result"></div>
+    </section>
+
+    <section class="howto">
+      <h2>ขั้นตอนการสั่งซื้อ</h2>
+      <div class="steps">
+        <div><b>1</b><span>คัดลอกลิงก์จาก LINE Store</span></div>
+        <div><b>2</b><span>กรอก LINE ID ผู้รับ</span></div>
+        <div><b>3</b><span>โอนเงินและแนบสลิป</span></div>
+        <div><b>4</b><span>แอดมินตรวจแล้วส่งของขวัญ</span></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/script.js"></script>
+</body>
+</html>
