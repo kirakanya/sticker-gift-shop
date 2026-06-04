@@ -2,10 +2,12 @@ const form = document.querySelector("#orderForm");
 const result = document.querySelector("#result");
 
 const tokenInput = document.querySelector("#tokenInput");
+const tokenButtons = document.querySelector("#tokenButtons");
 const priceCompare = document.querySelector("#priceCompare");
 const linePriceEl = document.querySelector("#linePrice");
 const ourPriceEl = document.querySelector("#ourPrice");
 const saveTextEl = document.querySelector("#saveText");
+const savePercentEl = document.querySelector("#savePercent");
 const amountInput = document.querySelector("#amountInput");
 
 let currentPrice = null;
@@ -36,35 +38,23 @@ function calculatePrice(token) {
   const linePrice = LINE_PRICE_TABLE[token];
   const ourPrice = OUR_PRICE_TABLE[token];
 
-  if (!linePrice || !ourPrice) {
-    return null;
-  }
+  if (!linePrice || !ourPrice) return null;
 
   const saveBaht = linePrice - ourPrice;
   const savePercent = Math.round((saveBaht / linePrice) * 100);
 
-  return {
-    token,
-    linePrice,
-    ourPrice,
-    saveBaht,
-    savePercent,
-  };
+  return { token, linePrice, ourPrice, saveBaht, savePercent };
 }
 
-function renderPriceCalculator() {
-  currentPrice = calculatePrice(tokenInput.value);
+function renderPriceCalculator(token) {
+  currentPrice = calculatePrice(token);
 
-  if (!currentPrice) {
-    priceCompare.classList.add("hidden");
-    return;
-  }
-
-  priceCompare.classList.remove("hidden");
+  if (!currentPrice) return;
 
   linePriceEl.textContent = `${currentPrice.linePrice} บาท`;
   ourPriceEl.textContent = `${currentPrice.ourPrice} บาท`;
-  saveTextEl.textContent = `ประหยัด ${currentPrice.saveBaht} บาท • ถูกกว่าประมาณ ${currentPrice.savePercent}%`;
+  saveTextEl.textContent = `ประหยัด ${currentPrice.saveBaht} บาท`;
+  savePercentEl.textContent = `ถูกกว่าประมาณ ${currentPrice.savePercent}%`;
 }
 
 function useCalculatedPrice() {
@@ -77,13 +67,32 @@ function useCalculatedPrice() {
   amountInput.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-if (tokenInput) {
-  tokenInput.addEventListener("change", renderPriceCalculator);
-  tokenInput.addEventListener("input", renderPriceCalculator);
+if (tokenButtons) {
+  tokenButtons.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-token]");
+    if (!btn) return;
+
+    document.querySelectorAll("[data-token]").forEach((button) => {
+      button.classList.remove("active");
+    });
+
+    btn.classList.add("active");
+
+    tokenInput.value = btn.dataset.token;
+    renderPriceCalculator(btn.dataset.token);
+  });
+
+  const defaultBtn = document.querySelector('[data-token="50"]');
+  if (defaultBtn) {
+    defaultBtn.classList.add("active");
+    tokenInput.value = "50";
+    renderPriceCalculator("50");
+  }
 }
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   result.innerHTML = `<div class="notice">กำลังส่งออเดอร์...</div>`;
 
   const formData = new FormData(form);
@@ -104,14 +113,11 @@ form.addEventListener("submit", async (e) => {
       <div class="success">
         <h3>ส่งออเดอร์สำเร็จ</h3>
         <p>เลขออเดอร์: <b>${data.orderId}</b></p>
-        <p>นำเลขออเดอร์ไปเช็กสถานะได้ที่หน้าเช็กสถานะ</p>
         <p><a href="/status.html">ไปหน้าเช็กสถานะ</a></p>
       </div>
     `;
 
     form.reset();
-    priceCompare.classList.add("hidden");
-    currentPrice = null;
   } catch (err) {
     result.innerHTML = `<div class="error">${err.message}</div>`;
   }
