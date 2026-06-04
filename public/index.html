@@ -3,31 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sticker Gift Shop</title>
+  <title>StickerGift</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
+
 <body>
   <header class="hero">
     <nav>
       <div class="logo">StickerGift</div>
-      <a href="/admin.html" class="admin-link">หลังบ้าน</a>
+      <div class="nav-links">
+        <a href="/status.html" class="admin-link">เช็กสถานะ</a>
+        <a href="/admin.html" class="admin-link">หลังบ้าน</a>
+      </div>
     </nav>
 
     <section class="hero-grid">
       <div>
-        <p class="tag">รับสติ๊กเกอร์ LINE เป็นของขวัญ ราคาน่ารัก</p>
+        <p class="tag">บริการสั่งซื้อ LINE Gift ราคาประหยัด</p>
         <h1>ส่งลิงก์สติ๊กเกอร์ + LINE ID ผู้รับ แล้วรอรับของขวัญได้เลย</h1>
         <p class="desc">
-          ระบบรับออเดอร์พร้อมสลิป แจ้งเตือนเข้า Discord เหมาะสำหรับร้านเล็กที่อยากเริ่มแบบเป็นระบบ
+          ระบบรับออเดอร์พร้อมสลิป แจ้งเตือนเข้า Discord และมีเลขออเดอร์ให้ลูกค้าเช็กสถานะ
         </p>
       </div>
 
       <div class="price-card">
-        <h2>ตัวอย่างราคา</h2>
-        <div class="price-row"><span>สติ๊กเกอร์ทั่วไป</span><b>เริ่ม 29฿</b></div>
-        <div class="price-row"><span>ธีม LINE</span><b>เริ่ม 59฿</b></div>
-        <div class="price-row"><span>อิโมจิ LINE</span><b>เริ่ม 29฿</b></div>
-        <small>ราคาให้แอดมินปรับตามต้นทุนจริง</small>
+        <h2>เช็กราคาก่อนสั่งซื้อ</h2>
+
+        <label>
+          จำนวน Token ที่เห็นใน LINE
+          <select id="tokenInput">
+            <option value="">เลือกจำนวน Token</option>
+            <option value="50">50 Token</option>
+            <option value="100">100 Token</option>
+            <option value="150">150 Token</option>
+            <option value="200">200 Token</option>
+            <option value="250">250 Token</option>
+            <option value="300">300 Token</option>
+            <option value="500">500 Token</option>
+          </select>
+        </label>
+
+        <div id="priceCompare" class="price-compare hidden">
+          <div class="compare-row">
+            <span>ราคา LINE ปกติ</span>
+            <b id="linePrice">-</b>
+          </div>
+
+          <div class="compare-row main">
+            <span>ราคาซื้อกับเรา</span>
+            <b id="ourPrice">-</b>
+          </div>
+
+          <div class="save-box">
+            <span id="saveText">ประหยัด -</span>
+          </div>
+        </div>
+
+        <button type="button" onclick="useCalculatedPrice()">
+          ใช้ราคานี้ในฟอร์ม
+        </button>
+
+        <small>ราคาคำนวณอัตโนมัติ อาจปรับตามต้นทุนจริง</small>
       </div>
     </section>
   </header>
@@ -60,7 +96,7 @@
 
         <label>
           ยอดโอนเงิน
-          <input name="amount" type="number" min="1" step="1" placeholder="เช่น 29" required />
+          <input id="amountInput" name="amount" type="number" min="1" step="1" placeholder="กดใช้ราคาจากเครื่องคำนวณ หรือกรอกเอง" required />
         </label>
 
         <label>
@@ -71,9 +107,9 @@
         <section class="payment-box">
           <h3>โอนเงินเข้าบัญชีร้าน</h3>
           <p>ธนาคาร: กสิกรไทย</p>
-          <p>เลขบัญชี: <b>127-356-1109</b></p>
-          <p>ชื่อบัญชี: <b>กิรกัลยาณ์ วันทอง</b></p>
-          <small></small>
+          <p>เลขบัญชี: <b>000-0-00000-0</b></p>
+          <p>ชื่อบัญชี: <b>Sticker Gift Shop</b></p>
+          <small>เปลี่ยนข้อมูลบัญชีในหน้าเว็บตามของจริงก่อนใช้งาน</small>
         </section>
 
         <label>

@@ -270,6 +270,7 @@ button:hover {
   font-weight: 800;
 }
 
+
 .mini-btn {
   padding: 6px 10px;
   border-radius: 10px;
@@ -290,4 +291,88 @@ button:hover {
     align-items: flex-start;
     flex-direction: column;
   }
+  .nav-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  background: #fff;
+  color: var(--ink);
+}
+
+select:focus {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none;
+}
+
+.price-compare {
+  margin: 18px 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.compare-row span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.compare-row b {
+  font-size: 18px;
+}
+
+.compare-row.main {
+  background: #111111;
+  color: #ffffff;
+}
+
+.compare-row.main span {
+  color: #ffffff;
+}
+
+.compare-row.main b {
+  color: #ffffff;
+  font-size: 26px;
+}
+
+.save-box {
+  padding: 14px 16px;
+  background: #f5f5f5;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.price-card button {
+  width: 100%;
+  margin: 6px 0 12px;
+}
+
+@media (max-width: 760px) {
+  .nav-links {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
 }
