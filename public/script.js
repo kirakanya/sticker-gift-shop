@@ -3,7 +3,6 @@ const result = document.querySelector("#result");
 
 const tokenInput = document.querySelector("#tokenInput");
 const tokenButtons = document.querySelector("#tokenButtons");
-const priceCompare = document.querySelector("#priceCompare");
 const linePriceEl = document.querySelector("#linePrice");
 const ourPriceEl = document.querySelector("#ourPrice");
 const saveTextEl = document.querySelector("#saveText");
@@ -14,6 +13,8 @@ let currentPrice = null;
 
 const LINE_PRICE_TABLE = {
   50: 35,
+  70: 50,
+  85: 60,
   100: 65,
   150: 95,
   200: 129,
@@ -24,6 +25,8 @@ const LINE_PRICE_TABLE = {
 
 const OUR_PRICE_TABLE = {
   50: 29,
+  70: 39,
+  85: 45,
   100: 49,
   150: 69,
   200: 99,
@@ -38,18 +41,28 @@ function calculatePrice(token) {
   const linePrice = LINE_PRICE_TABLE[token];
   const ourPrice = OUR_PRICE_TABLE[token];
 
-  if (!linePrice || !ourPrice) return null;
+  if (!linePrice || !ourPrice) {
+    return null;
+  }
 
   const saveBaht = linePrice - ourPrice;
   const savePercent = Math.round((saveBaht / linePrice) * 100);
 
-  return { token, linePrice, ourPrice, saveBaht, savePercent };
+  return {
+    token,
+    linePrice,
+    ourPrice,
+    saveBaht,
+    savePercent,
+  };
 }
 
 function renderPriceCalculator(token) {
   currentPrice = calculatePrice(token);
 
-  if (!currentPrice) return;
+  if (!currentPrice) {
+    return;
+  }
 
   linePriceEl.textContent = `${currentPrice.linePrice} บาท`;
   ourPriceEl.textContent = `${currentPrice.ourPrice} บาท`;
@@ -83,6 +96,7 @@ if (tokenButtons) {
   });
 
   const defaultBtn = document.querySelector('[data-token="50"]');
+
   if (defaultBtn) {
     defaultBtn.classList.add("active");
     tokenInput.value = "50";
@@ -118,6 +132,18 @@ form.addEventListener("submit", async (e) => {
     `;
 
     form.reset();
+
+    const defaultBtn = document.querySelector('[data-token="50"]');
+
+    document.querySelectorAll("[data-token]").forEach((button) => {
+      button.classList.remove("active");
+    });
+
+    if (defaultBtn) {
+      defaultBtn.classList.add("active");
+      tokenInput.value = "50";
+      renderPriceCalculator("50");
+    }
   } catch (err) {
     result.innerHTML = `<div class="error">${err.message}</div>`;
   }
