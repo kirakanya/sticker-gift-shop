@@ -83,17 +83,7 @@ a {
   color: var(--green);
 }
 
-.admin-link {
-  justify-self: end;
-  text-decoration: none;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  padding: 10px 16px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 14px;
-}
+
 
 .hero {
   padding: 74px 0 52px;
