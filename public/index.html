@@ -4,188 +4,218 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GiftHub | ส่งของขวัญ LINE ราคาประหยัด</title>
-  <link rel="icon" type="image/png" href="/assets/logo.png">
+  <<link rel="icon" type="image/jpeg" href="/assets/logo.jpg" /> />
   <link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
-  <header class="hero">
+  <header class="site-header">
     <nav class="navbar">
       <a href="/" class="brand">
-        <img src="/assets/logo.png" alt="GiftHub" class="logo-img">
+        <<img src="/assets/logo.jpg" alt="GiftHub" class="logo-img" /> />
       </a>
 
       <div class="nav-center">
         <a href="/">หน้าร้าน</a>
         <a href="/status.html">เช็กสถานะ</a>
-        <a href="#howto">วิธีการสั่งซื้อ</a>
-        <a href="#order">ติดต่อเรา</a>
+        <a href="#order">สั่งซื้อ</a>
+        <a href="#howto">วิธีใช้งาน</a>
       </div>
 
       <a href="/admin.html" class="admin-link">หลังบ้าน</a>
     </nav>
-
-    <section class="hero-grid">
-      <div class="hero-copy">
-        <p class="tag">บริการสั่งซื้อของขวัญ LINE ราคาประหยัด</p>
-
-        <h1>
-          สั่งลิงก์สติ๊กเกอร์ + LINE ID ผู้รับ
-          แล้วรอรับของขวัญได้เลย
-        </h1>
-
-        <p class="desc">
-          ระบบรับออเดอร์พร้อมสลิป แจ้งเตือนเข้า Discord มีเลขออเดอร์ให้ลูกค้าเช็กสถานะได้ตลอด
-        </p>
-
-        <div class="trust-row">
-          <div>
-            <b>ปลอดภัย</b>
-            <span>ไม่ต้องให้รหัสผ่าน</span>
-          </div>
-          <div>
-            <b>รวดเร็ว</b>
-            <span>ตอบไว ดูแลตลอดวัน</span>
-          </div>
-          <div>
-            <b>เชื่อถือได้</b>
-            <span>ส่งเป็นของขวัญ LINE</span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="price-card premium-card">
-        <p class="price-badge">คุ้มกว่า LINE แน่นอน</p>
-        <h2>เช็กราคาก่อนสั่งซื้อ</h2>
-
-        <label>
-          เลือกจำนวน TOKEN ที่เห็นใน LINE
-          <div class="token-grid" id="tokenButtons">
-            <button type="button" data-token="50">50 <small>แนะนำ</small></button>
-            <button type="button" data-token="100">100</button>
-            <button type="button" data-token="150">150</button>
-            <button type="button" data-token="200">200</button>
-            <button type="button" data-token="250">250</button>
-            <button type="button" data-token="300">300</button>
-            <button type="button" data-token="500">500</button>
-          </div>
-        </label>
-
-        <input id="tokenInput" type="hidden" />
-
-        <div id="priceCompare" class="price-compare">
-          <div class="compare-price-row">
-            <div>
-              <span>ราคา LINE ปกติ</span>
-              <b id="linePrice" class="line-normal">35 บาท</b>
-            </div>
-
-            <div>
-              <span>ร้านเราถูกกว่า</span>
-              <b id="ourPrice" class="our-price">29 บาท</b>
-            </div>
-          </div>
-
-          <div class="save-box">
-            <span>✓</span>
-            <div>
-              <b id="saveText">ประหยัด 6 บาท</b>
-              <small id="savePercent">ถูกกว่าประมาณ 17%</small>
-            </div>
-            <span class="discount-icon">%</span>
-          </div>
-        </div>
-
-        <button type="button" class="green-btn" onclick="useCalculatedPrice()">
-          ใช้ราคานี้ในฟอร์ม
-        </button>
-
-        <small class="price-note">ราคาคำนวณอัตโนมัติ อาจปรับตามต้นทุนจริง</small>
-      </aside>
-    </section>
   </header>
 
-  <section class="social-proof">
-    <div>
-      <b>ลูกค้ากว่า</b>
-      <span>500+ ออเดอร์ ขอบคุณที่ไว้วางใจเรา</span>
-    </div>
-    <div>
-      <b>ปลอดภัย 100%</b>
-      <span>ไม่ใช้รหัสผ่าน ไม่เชื่อมโยงบัญชี</span>
-    </div>
-    <div>
-      <b>แอดมินดูแล</b>
-      <span>ตอบไว ส่งไว ไม่ทิ้งออเดอร์</span>
-    </div>
-    <div>
-      <b>ส่งเป็นของขวัญ</b>
-      <span>จากระบบ LINE โดยตรง</span>
-    </div>
-  </section>
+  <main>
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="tag">LINE Gift Service</p>
 
-  <main class="container">
-    <section id="order" class="order-layout">
-      <section class="card order-form-card">
-        <h2>ฟอร์มสั่งซื้อ</h2>
+          <h1>
+            สั่งสติ๊กเกอร์ LINE เป็นของขวัญ
+            ได้ง่ายกว่าเดิม
+          </h1>
 
-        <form id="orderForm">
-          <label>
-            ลิงก์สติ๊กเกอร์ / ธีม LINE
-            <input name="stickerUrl" type="url" placeholder="https://store.line.me/stickershop/product/..." required />
-          </label>
+          <p class="desc">
+            วางลิงก์สินค้า กรอก LINE ID ผู้รับ แนบสลิป แล้วรอแอดมินจัดส่งเป็นของขวัญผ่าน LINE
+          </p>
 
-          <label>
-            LINE ID ผู้รับของขวัญ
-            <input name="receiverLineId" type="text" placeholder="เช่น pakgard_123" required />
-          </label>
-
-          <label>
-            ชื่อลูกค้า
-            <input name="customerName" type="text" placeholder="ชื่อเล่น/ชื่อจริง" required />
-          </label>
-
-          <label>
-            ช่องทางติดต่อกลับ
-            <input name="customerContact" type="text" placeholder="LINE / IG / เบอร์โทร" required />
-          </label>
-
-          <label>
-            ยอดโอนเงิน
-            <input id="amountInput" name="amount" type="number" min="1" step="1" placeholder="ระบบจะกรอกให้อัตโนมัติ หรือกรอกเอง" required />
-          </label>
-
-          <label>
-            หมายเหตุ
-            <textarea name="note" placeholder="เช่น ส่งให้เร็วที่สุด / ซื้อเป็นของขวัญให้เพื่อน"></textarea>
-          </label>
-
-          <label>
-            อัปโหลดสลิป
-            <input name="slip" type="file" accept="image/png,image/jpeg,image/webp" required />
-          </label>
-
-          <button type="submit">ส่งออเดอร์</button>
-        </form>
-
-        <div id="result"></div>
-      </section>
-
-      <aside class="payment-box">
-        <h3>โอนเงินเข้าบัญชีร้าน</h3>
-        <p>ธนาคาร</p>
-        <b>กสิกรไทย</b>
-
-        <p>เลขบัญชี</p>
-        <b>000-0-00000-0</b>
-
-        <p>ชื่อบัญชี</p>
-        <b>GiftHub Shop</b>
-
-        <div class="mini-note">
-          โอนแล้วแนบสลิปในฟอร์ม เพื่อให้แอดมินตรวจสอบ
+          <div class="trust-row">
+            <div>
+              <b>ไม่ต้องให้รหัสผ่าน</b>
+              <span>ใช้เพียง LINE ID สำหรับรับของขวัญ</span>
+            </div>
+            <div>
+              <b>มีระบบเช็กสถานะ</b>
+              <span>ตรวจสอบออเดอร์ได้ด้วยเลขคำสั่งซื้อ</span>
+            </div>
+            <div>
+              <b>แจ้งเตือนอัตโนมัติ</b>
+              <span>ออเดอร์เข้าแอดมินทันทีหลังส่งฟอร์ม</span>
+            </div>
+          </div>
         </div>
-      </aside>
+
+        <aside class="price-card">
+          <p class="price-badge">Price Calculator</p>
+          <h2>เช็กราคาก่อนสั่งซื้อ</h2>
+
+          <label>
+            เลือกจำนวน Token ที่เห็นใน LINE
+            <div class="token-grid" id="tokenButtons">
+              <button type="button" data-token="50">50 <small>popular</small></button>
+              <button type="button" data-token="100">100</button>
+              <button type="button" data-token="150">150</button>
+              <button type="button" data-token="200">200</button>
+              <button type="button" data-token="250">250</button>
+              <button type="button" data-token="300">300</button>
+              <button type="button" data-token="500">500</button>
+            </div>
+          </label>
+
+          <input id="tokenInput" type="hidden" />
+
+          <div id="priceCompare" class="price-compare">
+            <div class="compare-price-row">
+              <div>
+                <span>ราคา LINE ปกติ</span>
+                <b id="linePrice" class="line-normal">35 บาท</b>
+              </div>
+
+              <div>
+                <span>ราคากับ GiftHub</span>
+                <b id="ourPrice" class="our-price">29 บาท</b>
+              </div>
+            </div>
+
+            <div class="save-box">
+              <div>
+                <b id="saveText">ประหยัด 6 บาท</b>
+                <small id="savePercent">ถูกกว่าประมาณ 17%</small>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="green-btn" onclick="useCalculatedPrice()">
+            ใช้ราคานี้ในฟอร์ม
+          </button>
+
+          <small class="price-note">ราคาคำนวณอัตโนมัติ อาจปรับตามต้นทุนจริง</small>
+        </aside>
+      </div>
+    </section>
+
+    <section class="social-proof">
+      <div>
+        <b>500+ Orders</b>
+        <span>รองรับออเดอร์จากลูกค้าอย่างเป็นระบบ</span>
+      </div>
+      <div>
+        <b>Secure Process</b>
+        <span>ไม่ขอรหัสผ่านหรือข้อมูลส่วนตัวเกินจำเป็น</span>
+      </div>
+      <div>
+        <b>Order Tracking</b>
+        <span>ลูกค้าตรวจสอบสถานะด้วยเลขออเดอร์ได้</span>
+      </div>
+      <div>
+        <b>LINE Gift</b>
+        <span>จัดส่งเป็นของขวัญผ่านระบบ LINE</span>
+      </div>
+    </section>
+
+    <section id="order" class="container">
+      <div class="order-layout">
+        <section class="card order-form-card">
+          <div class="section-head">
+            <p class="eyebrow">Order Form</p>
+            <h2>ฟอร์มสั่งซื้อ</h2>
+            <p class="muted">กรอกข้อมูลให้ครบ หลังส่งออเดอร์แอดมินจะตรวจและจัดส่งเป็นของขวัญ</p>
+          </div>
+
+          <form id="orderForm">
+            <label>
+              ลิงก์สติ๊กเกอร์ / ธีม LINE
+              <input name="stickerUrl" type="url" placeholder="https://store.line.me/stickershop/product/..." required />
+            </label>
+
+            <label>
+              LINE ID ผู้รับของขวัญ
+              <input name="receiverLineId" type="text" placeholder="เช่น pakgard_123" required />
+            </label>
+
+            <label>
+              ชื่อลูกค้า
+              <input name="customerName" type="text" placeholder="ชื่อเล่น/ชื่อจริง" required />
+            </label>
+
+            <label>
+              ช่องทางติดต่อกลับ
+              <input name="customerContact" type="text" placeholder="LINE / IG / เบอร์โทร" required />
+            </label>
+
+            <label>
+              ยอดโอนเงิน
+              <input id="amountInput" name="amount" type="number" min="1" step="1" placeholder="กดใช้ราคาจากเครื่องคำนวณ หรือกรอกเอง" required />
+            </label>
+
+            <label>
+              หมายเหตุ
+              <textarea name="note" placeholder="เช่น ส่งให้เร็วที่สุด / ซื้อเป็นของขวัญให้เพื่อน"></textarea>
+            </label>
+
+            <label>
+              อัปโหลดสลิป
+              <input name="slip" type="file" accept="image/png,image/jpeg,image/webp" required />
+            </label>
+
+            <button type="submit">ส่งออเดอร์</button>
+          </form>
+
+          <div id="result"></div>
+        </section>
+
+        <aside class="payment-box">
+          <p class="eyebrow">Payment</p>
+          <h3>โอนเงินเข้าบัญชีร้าน</h3>
+
+          <div class="bank-row">
+            <span>ธนาคาร</span>
+            <b>กสิกรไทย</b>
+          </div>
+
+          <div class="bank-row">
+            <span>เลขบัญชี</span>
+            <b>000-0-00000-0</b>
+          </div>
+
+          <div class="bank-row">
+            <span>ชื่อบัญชี</span>
+            <b>GiftHub Shop</b>
+          </div>
+
+          <div class="mini-note">
+            โอนแล้วแนบสลิปในฟอร์ม เพื่อให้แอดมินตรวจสอบและดำเนินการต่อ
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="howto" class="howto-section">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">How It Works</p>
+          <h2>วิธีการสั่งซื้อ</h2>
+        </div>
+
+        <div class="steps">
+          <div><b>01</b><span>คัดลอกลิงก์จาก LINE Store</span></div>
+          <div><b>02</b><span>กรอก LINE ID ผู้รับของขวัญ</span></div>
+          <div><b>03</b><span>โอนเงินและแนบสลิป</span></div>
+          <div><b>04</b><span>แอดมินตรวจและจัดส่งของขวัญ</span></div>
+        </div>
+      </div>
     </section>
   </main>
 
