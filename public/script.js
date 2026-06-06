@@ -24,7 +24,7 @@ const OUR_PRICE_TABLE = {
   70: 39,
   85: 45,
   100: 55,
-  150: 99,
+  150: 79,
 };
 
 function calculatePrice(token) {
