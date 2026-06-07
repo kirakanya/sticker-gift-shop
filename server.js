@@ -7,25 +7,22 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const { nanoid } = require("nanoid");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const DATA_DIR = path.join(__dirname, "data");
 const UPLOAD_DIR = path.join(__dirname, "uploads");
-const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
-
-fs.mkdirSync(DATA_DIR, { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-if (!fs.existsSync(ORDERS_FILE)) {
-  fs.writeFileSync(ORDERS_FILE, "[]", "utf8");
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 app.use(cors());
 app.use(express.json());
 
-// ===== Admin Login =====
 function checkAdmin(req, res, next) {
   const auth = req.headers.authorization;
 
@@ -49,7 +46,6 @@ function checkAdmin(req, res, next) {
   return res.status(401).send("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
 }
 
-// หน้า admin ต้องล็อกอินก่อน
 app.get("/admin.html", checkAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
@@ -71,12 +67,93 @@ const upload = multer({
   },
 });
 
-function readOrders() {
-  return JSON.parse(fs.readFileSync(ORDERS_FILE, "utf8"));
+function mapOrderFromDb(row) {
+  return {
+    id: row.id,
+    stickerUrl: row.sticker_url,
+    receiverLineId: row.receiver_line_id,
+    customerName: row.customer_name,
+    customerContact: row.customer_contact,
+    amount: Number(row.amount),
+    note: row.note || "",
+    slipFile: row.slip_file || "",
+    slipUrl: row.slip_url || "",
+    paymentStatus: row.payment_status,
+    paymentMessage: row.payment_message,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function writeOrders(orders) {
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf8");
+function mapOrderToDb(order) {
+  return {
+    id: order.id,
+    sticker_url: order.stickerUrl,
+    receiver_line_id: order.receiverLineId,
+    customer_name: order.customerName,
+    customer_contact: order.customerContact,
+    amount: order.amount,
+    note: order.note || "",
+    slip_file: order.slipFile || "",
+    slip_url: order.slipUrl || "",
+    payment_status: order.paymentStatus,
+    payment_message: order.paymentMessage,
+    status: order.status,
+    created_at: order.createdAt,
+    updated_at: order.updatedAt,
+  };
+}
+
+async function getAllOrders() {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return data.map(mapOrderFromDb);
+}
+
+async function getOrderById(id) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return null;
+
+  return mapOrderFromDb(data);
+}
+
+async function createOrder(order) {
+  const { error } = await supabase
+    .from("orders")
+    .insert(mapOrderToDb(order));
+
+  if (error) throw error;
+}
+
+async function updateOrder(id, updates) {
+  const dbUpdates = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (updates.status) dbUpdates.status = updates.status;
+  if (updates.paymentStatus) dbUpdates.payment_status = updates.paymentStatus;
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update(dbUpdates)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+
+  return mapOrderFromDb(data);
 }
 
 function isValidLineStickerUrl(url) {
@@ -111,16 +188,16 @@ async function notifyDiscord(order) {
   }
 
   const statusText = {
-    manual_review: "🟡 รอตรวจสลิป",
-    paid_verified: "🟢 ชำระเงินแล้ว",
-    payment_problem: "🔴 สลิปมีปัญหา",
+    manual_review: "รอตรวจสลิป",
+    paid_verified: "ชำระเงินแล้ว",
+    payment_problem: "สลิปมีปัญหา",
   }[order.paymentStatus] || order.paymentStatus;
 
   await axios.post(webhook, {
     embeds: [
       {
-        title: `🛒 ออเดอร์ใหม่ #${order.id}`,
-        color: 0xff4fa3,
+        title: `ออเดอร์ใหม่ #${order.id}`,
+        color: 0x16a34a,
         fields: [
           { name: "สินค้า", value: order.stickerUrl || "-", inline: false },
           { name: "LINE ID ผู้รับ", value: order.receiverLineId || "-", inline: true },
@@ -137,7 +214,7 @@ async function notifyDiscord(order) {
   });
 }
 
-// ===== ลูกค้าส่งออเดอร์ =====
+// ลูกค้าส่งออเดอร์
 app.post("/api/orders", upload.single("slip"), async (req, res) => {
   try {
     const {
@@ -193,10 +270,7 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
       updatedAt: null,
     };
 
-    const orders = readOrders();
-    orders.unshift(order);
-    writeOrders(orders);
-
+    await createOrder(order);
     await notifyDiscord(order);
 
     res.json({
@@ -211,52 +285,55 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
   }
 });
 
-// ===== ลูกค้าเช็กสถานะออเดอร์ =====
-app.get("/api/orders/:id", (req, res) => {
-  const { id } = req.params;
+// ลูกค้าเช็กสถานะ
+app.get("/api/orders/:id", async (req, res) => {
+  try {
+    const order = await getOrderById(req.params.id);
 
-  const orders = readOrders();
-  const order = orders.find((o) => o.id === id);
+    if (!order) {
+      return res.status(404).json({ error: "ไม่พบออเดอร์นี้" });
+    }
 
-  if (!order) {
-    return res.status(404).json({ error: "ไม่พบออเดอร์นี้" });
+    res.json({
+      id: order.id,
+      customerName: order.customerName,
+      amount: order.amount,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt || null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "ระบบมีปัญหา" });
   }
-
-  res.json({
-    id: order.id,
-    customerName: order.customerName,
-    amount: order.amount,
-    status: order.status,
-    paymentStatus: order.paymentStatus,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt || null,
-  });
 });
 
-// ===== หลังบ้าน ต้องล็อกอิน =====
-app.get("/api/admin/orders", checkAdmin, (req, res) => {
-  res.json(readOrders());
+// หลังบ้าน
+app.get("/api/admin/orders", checkAdmin, async (req, res) => {
+  try {
+    const orders = await getAllOrders();
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "โหลดออเดอร์ไม่สำเร็จ" });
+  }
 });
 
-app.patch("/api/admin/orders/:id", checkAdmin, (req, res) => {
-  const { id } = req.params;
-  const { status, paymentStatus } = req.body;
+app.patch("/api/admin/orders/:id", checkAdmin, async (req, res) => {
+  try {
+    const { status, paymentStatus } = req.body;
 
-  const orders = readOrders();
-  const order = orders.find((o) => o.id === id);
+    const order = await updateOrder(req.params.id, {
+      status,
+      paymentStatus,
+    });
 
-  if (!order) {
-    return res.status(404).json({ error: "ไม่พบออเดอร์" });
+    res.json({ ok: true, order });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "อัปเดตออเดอร์ไม่สำเร็จ" });
   }
-
-  if (status) order.status = status;
-  if (paymentStatus) order.paymentStatus = paymentStatus;
-
-  order.updatedAt = new Date().toISOString();
-
-  writeOrders(orders);
-
-  res.json({ ok: true, order });
 });
 
 app.listen(PORT, () => {
