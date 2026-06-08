@@ -4,16 +4,12 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const axios = require("axios");
-const fs = require("fs");
 const path = require("path");
 const { nanoid } = require("nanoid");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const UPLOAD_DIR = path.join(__dirname, "uploads");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -22,6 +18,7 @@ const supabase = createClient(
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 function checkAdmin(req, res, next) {
   const auth = req.headers.authorization;
@@ -32,9 +29,7 @@ function checkAdmin(req, res, next) {
   }
 
   const base64 = auth.split(" ")[1];
-  const [username, password] = Buffer.from(base64, "base64")
-    .toString()
-    .split(":");
+  const [username, password] = Buffer.from(base64, "base64").toString().split(":");
 
   if (
     username === process.env.ADMIN_USERNAME &&
@@ -50,11 +45,8 @@ app.get("/admin.html", checkAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/uploads", express.static(UPLOAD_DIR));
-
 const upload = multer({
-  dest: UPLOAD_DIR,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter(req, file, cb) {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
@@ -105,6 +97,30 @@ function mapOrderToDb(order) {
   };
 }
 
+async function uploadSlipToSupabase(file, orderId) {
+  const ext = path.extname(file.originalname || "") || ".jpg";
+  const fileName = `${orderId}${ext}`;
+  const filePath = `slips/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from("slips")
+    .upload(filePath, file.buffer, {
+      contentType: file.mimetype,
+      upsert: true,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from("slips")
+    .getPublicUrl(filePath);
+
+  return {
+    slipFile: fileName,
+    slipUrl: data.publicUrl,
+  };
+}
+
 async function getAllOrders() {
   const { data, error } = await supabase
     .from("orders")
@@ -112,7 +128,6 @@ async function getAllOrders() {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-
   return data.map(mapOrderFromDb);
 }
 
@@ -124,15 +139,11 @@ async function getOrderById(id) {
     .single();
 
   if (error) return null;
-
   return mapOrderFromDb(data);
 }
 
 async function createOrder(order) {
-  const { error } = await supabase
-    .from("orders")
-    .insert(mapOrderToDb(order));
-
+  const { error } = await supabase.from("orders").insert(mapOrderToDb(order));
   if (error) throw error;
 }
 
@@ -152,7 +163,6 @@ async function updateOrder(id, updates) {
     .single();
 
   if (error) throw error;
-
   return mapOrderFromDb(data);
 }
 
@@ -187,34 +197,38 @@ async function notifyDiscord(order) {
     return;
   }
 
-  const statusText = {
-    manual_review: "รอตรวจสลิป",
-    paid_verified: "ชำระเงินแล้ว",
-    payment_problem: "สลิปมีปัญหา",
-  }[order.paymentStatus] || order.paymentStatus;
+  const statusText =
+    {
+      manual_review: "รอตรวจสลิป",
+      paid_verified: "ชำระเงินแล้ว",
+      payment_problem: "สลิปมีปัญหา",
+    }[order.paymentStatus] || order.paymentStatus;
 
-  await axios.post(webhook, {
-    embeds: [
-      {
-        title: `ออเดอร์ใหม่ #${order.id}`,
-        color: 0x16a34a,
-        fields: [
-          { name: "สินค้า", value: order.stickerUrl || "-", inline: false },
-          { name: "LINE ID ผู้รับ", value: order.receiverLineId || "-", inline: true },
-          { name: "ชื่อลูกค้า", value: order.customerName || "-", inline: true },
-          { name: "ช่องทางติดต่อ", value: order.customerContact || "-", inline: true },
-          { name: "ยอดโอน", value: `${order.amount} บาท`, inline: true },
-          { name: "สถานะ", value: statusText, inline: true },
-          { name: "หมายเหตุ", value: order.note || "-", inline: false },
-          { name: "สลิป", value: order.slipUrl || "-", inline: false },
-        ],
-        timestamp: new Date(order.createdAt).toISOString(),
-      },
-    ],
-  });
+  try {
+    await axios.post(webhook, {
+      embeds: [
+        {
+          title: `ออเดอร์ใหม่ #${order.id}`,
+          color: 0x16a34a,
+          fields: [
+            { name: "สินค้า", value: order.stickerUrl || "-", inline: false },
+            { name: "LINE ID ผู้รับ", value: order.receiverLineId || "-", inline: true },
+            { name: "ชื่อลูกค้า", value: order.customerName || "-", inline: true },
+            { name: "ช่องทางติดต่อ", value: order.customerContact || "-", inline: true },
+            { name: "ยอดโอน", value: `${order.amount} บาท`, inline: true },
+            { name: "สถานะ", value: statusText, inline: true },
+            { name: "หมายเหตุ", value: order.note || "-", inline: false },
+            { name: "สลิป", value: order.slipUrl || "-", inline: false },
+          ],
+          timestamp: new Date(order.createdAt).toISOString(),
+        },
+      ],
+    });
+  } catch (err) {
+    console.error("Discord แจ้งเตือนไม่สำเร็จ:", err.response?.data || err.message);
+  }
 }
 
-// ลูกค้าส่งออเดอร์
 app.post("/api/orders", upload.single("slip"), async (req, res) => {
   try {
     const {
@@ -245,13 +259,8 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
     }
 
     const id = nanoid(10);
-    const slipExt = path.extname(req.file.originalname || "") || ".jpg";
-    const newSlipName = `${id}${slipExt}`;
-    const newSlipPath = path.join(UPLOAD_DIR, newSlipName);
-
-    fs.renameSync(req.file.path, newSlipPath);
-
     const slipCheck = await verifySlip();
+    const slip = await uploadSlipToSupabase(req.file, id);
 
     const order = {
       id,
@@ -261,8 +270,8 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
       customerContact,
       amount: numericAmount,
       note: note || "",
-      slipFile: newSlipName,
-      slipUrl: `/uploads/${newSlipName}`,
+      slipFile: slip.slipFile,
+      slipUrl: slip.slipUrl,
       paymentStatus: slipCheck.status,
       paymentMessage: slipCheck.message,
       status: "waiting_slip_review",
@@ -285,7 +294,6 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
   }
 });
 
-// ลูกค้าเช็กสถานะ
 app.get("/api/orders/:id", async (req, res) => {
   try {
     const order = await getOrderById(req.params.id);
@@ -309,7 +317,6 @@ app.get("/api/orders/:id", async (req, res) => {
   }
 });
 
-// หลังบ้าน
 app.get("/api/admin/orders", checkAdmin, async (req, res) => {
   try {
     const orders = await getAllOrders();
