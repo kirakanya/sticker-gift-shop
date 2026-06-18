@@ -9,12 +9,9 @@ const { nanoid } = require("nanoid");
 const { createClient } = require("@supabase/supabase-js");
 const generatePayload = require("promptpay-qr");
 const QRCode = require("qrcode");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-}
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -34,14 +31,9 @@ function checkAdmin(req, res, next) {
   }
 
   const base64 = auth.split(" ")[1];
-  const [username, password] = Buffer.from(base64, "base64")
-    .toString()
-    .split(":");
+  const [username, password] = Buffer.from(base64, "base64").toString().split(":");
 
-  if (
-    username === process.env.ADMIN_USERNAME &&
-    password === process.env.ADMIN_PASSWORD
-  ) {
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
     return next();
   }
 
@@ -57,11 +49,9 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter(req, file, cb) {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
-
     if (!allowed.includes(file.mimetype)) {
       return cb(new Error("รองรับเฉพาะไฟล์ JPG, PNG, WEBP"));
     }
-
     cb(null, true);
   },
 });
@@ -107,17 +97,8 @@ function mapOrderToDb(order) {
 function isValidLineProductUrl(url) {
   try {
     const u = new URL(url);
-
-    const allowedHosts = [
-      "line.me",
-      "store.line.me",
-      "music.line.me",
-      "lin.ee",
-    ];
-
-    return allowedHosts.some(
-      (host) => u.hostname === host || u.hostname.endsWith(`.${host}`)
-    );
+    const allowedHosts = ["line.me", "store.line.me", "music.line.me", "lin.ee"];
+    return allowedHosts.some((host) => u.hostname === host || u.hostname.endsWith(`.${host}`));
   } catch {
     return false;
   }
@@ -127,17 +108,12 @@ async function uploadSlipToSupabase(file, orderId) {
   const ext = path.extname(file.originalname || "") || ".jpg";
   const fileName = `${orderId}${ext}`;
 
-  const { error } = await supabase.storage
-    .from("slips")
-    .upload(fileName, file.buffer, {
-      contentType: file.mimetype,
-      upsert: true,
-    });
+  const { error } = await supabase.storage.from("slips").upload(fileName, file.buffer, {
+    contentType: file.mimetype,
+    upsert: true,
+  });
 
-  if (error) {
-    console.error("Upload slip error:", error);
-    throw error;
-  }
+  if (error) throw error;
 
   const { data } = supabase.storage.from("slips").getPublicUrl(fileName);
 
@@ -153,23 +129,13 @@ async function getAllOrders() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Get orders error:", error);
-    throw error;
-  }
-
+  if (error) throw error;
   return data.map(mapOrderFromDb);
 }
 
 async function getOrderById(id) {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("id", id)
-    .single();
-
+  const { data, error } = await supabase.from("orders").select("*").eq("id", id).single();
   if (error) return null;
-
   return mapOrderFromDb(data);
 }
 
@@ -180,18 +146,12 @@ async function createOrder(order) {
     .select("*")
     .single();
 
-  if (error) {
-    console.error("Create order error:", error);
-    throw error;
-  }
-
+  if (error) throw error;
   return mapOrderFromDb(data);
 }
 
 async function updateOrder(id, updates) {
-  const dbUpdates = {
-    updated_at: new Date().toISOString(),
-  };
+  const dbUpdates = { updated_at: new Date().toISOString() };
 
   if (updates.status) dbUpdates.status = updates.status;
   if (updates.paymentStatus) dbUpdates.payment_status = updates.paymentStatus;
@@ -203,11 +163,7 @@ async function updateOrder(id, updates) {
     .select("*")
     .single();
 
-  if (error) {
-    console.error("Update order error:", error);
-    throw error;
-  }
-
+  if (error) throw error;
   return mapOrderFromDb(data);
 }
 
@@ -268,16 +224,40 @@ async function notifyDiscord(order) {
   }
 }
 
+app.get("/api/payment-qr", async (req, res) => {
+  try {
+    const amount = Number(req.query.amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ error: "ยอดเงินไม่ถูกต้อง" });
+    }
+
+    const promptpayId = process.env.PROMPTPAY_ID;
+
+    if (!promptpayId) {
+      return res.status(500).json({ error: "ยังไม่ได้ตั้งค่า PROMPTPAY_ID" });
+    }
+
+    const payload = generatePayload(promptpayId, { amount });
+    const qrDataUrl = await QRCode.toDataURL(payload, {
+      width: 360,
+      margin: 2,
+    });
+
+    res.json({
+      ok: true,
+      amount,
+      qrDataUrl,
+    });
+  } catch (err) {
+    console.error("Generate PromptPay QR failed:", err);
+    res.status(500).json({ error: "สร้าง QR พร้อมเพย์ไม่สำเร็จ" });
+  }
+});
+
 app.post("/api/orders", upload.single("slip"), async (req, res) => {
   try {
-    const {
-      stickerUrl,
-      receiverLineId,
-      customerName,
-      customerContact,
-      amount,
-      note,
-    } = req.body;
+    const { stickerUrl, receiverLineId, customerName, customerContact, amount, note } = req.body;
 
     if (!stickerUrl || !receiverLineId || !customerName || !customerContact || !amount) {
       return res.status(400).json({ error: "กรอกข้อมูลไม่ครบ" });
@@ -321,7 +301,6 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
     };
 
     const savedOrder = await createOrder(order);
-
     await notifyDiscord(savedOrder);
 
     res.json({

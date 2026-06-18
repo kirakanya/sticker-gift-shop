@@ -9,6 +9,11 @@ const saveTextEl = document.querySelector("#saveText");
 const savePercentEl = document.querySelector("#savePercent");
 const amountInput = document.querySelector("#amountInput");
 
+const promptpayBox = document.querySelector("#promptpayBox");
+const promptpayQr = document.querySelector("#promptpayQr");
+const promptpayAmount = document.querySelector("#promptpayAmount");
+const downloadQr = document.querySelector("#downloadQr");
+
 let currentPrice = null;
 
 const LINE_PRICE_TABLE = {
@@ -62,6 +67,30 @@ function renderPriceCalculator(token) {
   savePercentEl.textContent = `ถูกกว่าประมาณ ${currentPrice.savePercent}%`;
 }
 
+async function generatePaymentQr(amount) {
+  if (!promptpayBox || !promptpayQr || !promptpayAmount || !downloadQr) return;
+
+  promptpayBox.classList.remove("hidden");
+  promptpayAmount.textContent = "กำลังสร้าง QR...";
+  promptpayQr.removeAttribute("src");
+  downloadQr.removeAttribute("href");
+
+  try {
+    const res = await fetch(`/api/payment-qr?amount=${amount}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "สร้าง QR ไม่สำเร็จ");
+    }
+
+    promptpayAmount.textContent = `ยอดโอน ${data.amount} บาท`;
+    promptpayQr.src = data.qrDataUrl;
+    downloadQr.href = data.qrDataUrl;
+  } catch (err) {
+    promptpayAmount.textContent = err.message;
+  }
+}
+
 function useCalculatedPrice() {
   if (!currentPrice) {
     alert("กรุณาเลือกจำนวน Token ก่อน");
@@ -69,6 +98,7 @@ function useCalculatedPrice() {
   }
 
   amountInput.value = currentPrice.ourPrice;
+  generatePaymentQr(currentPrice.ourPrice);
   amountInput.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
@@ -136,6 +166,8 @@ form.addEventListener("submit", async (e) => {
       tokenInput.value = "50";
       renderPriceCalculator("50");
     }
+
+    if (promptpayBox) promptpayBox.classList.add("hidden");
   } catch (err) {
     result.innerHTML = `<div class="error">${err.message}</div>`;
   }

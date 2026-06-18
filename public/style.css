@@ -624,4 +624,50 @@ button:hover {
   .payment-box {
     position: static;
   }
+  .hidden {
+  display: none;
+}
+
+.promptpay-box {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.promptpay-box h3 {
+  margin: 0 0 8px;
+}
+
+.promptpay-box p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.promptpay-box img {
+  width: 220px;
+  max-width: 100%;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 10px;
+  border: 1px solid var(--line);
+}
+
+.qr-download {
+  margin-top: 12px;
+  display: inline-block;
+  text-decoration: none;
+  background: var(--green);
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.qr-download:hover {
+  background: var(--green-dark);
+}
 }
