@@ -20,11 +20,11 @@ const LINE_PRICE_TABLE = {
 };
 
 const OUR_PRICE_TABLE = {
-  50: 29,
-  70: 39,
+  50: 25,
+  70: 35,
   85: 45,
-  100: 55,
-  150: 79,
+  100: 50,
+  150: 75,
 };
 
 function calculatePrice(token) {
