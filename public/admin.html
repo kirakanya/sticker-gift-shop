@@ -3,58 +3,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>หลังบ้าน | StickerGift</title>
+  <title>GiftHub Admin</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
   <main class="container">
-    <div class="admin-head">
-      <div>
-        <p class="tag">🛠️ Admin Dashboard</p>
-        <h1>จัดการออเดอร์ร้านสติ๊กเกอร์</h1>
-      </div>
+    <p class="tag">Admin Dashboard</p>
 
-      <a href="/" class="admin-link">กลับหน้าร้าน</a>
-    </div>
+    <h1>จัดการออเดอร์ร้านสติ๊กเกอร์</h1>
 
-    <section id="dashboard" class="dashboard">
+    <p>
+      <a href="/">กลับหน้าร้าน</a>
+    </p>
+
+    <section class="dashboard">
       <div class="stat-card">
-        <b>💰 ยอดขายวันนี้</b>
-        <span>กำลังโหลด...</span>
-      </div>
-
-      <div class="stat-card">
-        <b>📦 ออเดอร์วันนี้</b>
-        <span>กำลังโหลด...</span>
+        <b>ยอดขายวันนี้</b>
+        <span id="totalSales">0 บาท</span>
       </div>
 
       <div class="stat-card">
-        <b>💸 ยอดขายทั้งหมด</b>
-        <span>กำลังโหลด...</span>
+        <b>ออเดอร์วันนี้</b>
+        <span id="todayOrders">0 รายการ</span>
+      </div>
+
+      <div class="stat-card">
+        <b>ยอดขายทั้งหมด</b>
+        <span id="allSales">0 บาท</span>
       </div>
     </section>
 
     <section class="card">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
-        <button id="backupBtn">📥 ดาวน์โหลด Backup</button>
-        <button id="refreshBtn">🔄 รีเฟรชออเดอร์</button>
+      <div class="actions">
+        <button type="button" onclick="loadOrders()">รีเฟรชออเดอร์</button>
       </div>
 
-      <input
-        id="searchInput"
-        type="text"
-        placeholder="ค้นหา: ชื่อลูกค้า / LINE ID / เลขออเดอร์ / สถานะ / ยอดเงิน"
-        style="margin-bottom:20px;"
-      />
+      <label>
+        ค้นหาออเดอร์
+        <input id="adminSearch" type="text" placeholder="ค้นหา: ชื่อลูกค้า / LINE ID / เลขออเดอร์ / สถานะ / ยอดเงิน" />
+      </label>
 
-      <h2>รายการออเดอร์ทั้งหมด</h2>
+      <div class="section-head">
+        <h2>รายการออเดอร์ทั้งหมด</h2>
+        <p class="muted">ค้นหาได้จากชื่อ ลูกค้า LINE ID ช่องทางติดต่อ เลขออเดอร์ ลิงก์สินค้า สถานะ หรือยอดเงิน</p>
+      </div>
 
-      <p class="muted">
-        ค้นหาได้จากชื่อ ลูกค้า LINE ID ช่องทางติดต่อ เลขออเดอร์ ลิงก์สินค้า สถานะ หรือยอดเงิน
-      </p>
-
-      <div id="orders" class="orders">กำลังโหลด...</div>
+      <div id="orders" class="orders">
+        <div class="notice">กำลังโหลดออเดอร์...</div>
+      </div>
     </section>
   </main>
 

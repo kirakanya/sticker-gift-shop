@@ -7,7 +7,8 @@ const axios = require("axios");
 const path = require("path");
 const { nanoid } = require("nanoid");
 const { createClient } = require("@supabase/supabase-js");
-
+const generatePayload = require("promptpay-qr");
+const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
