@@ -1,178 +1,132 @@
 const ordersEl = document.querySelector("#orders");
-const searchInput = document.querySelector("#searchInput");
-const backupBtn = document.querySelector("#backupBtn");
-const refreshBtn = document.querySelector("#refreshBtn");
+const totalSalesEl = document.querySelector("#totalSales");
+const todayOrdersEl = document.querySelector("#todayOrders");
+const allSalesEl = document.querySelector("#allSales");
 
-let allOrders = [];
+function formatDate(dateString) {
+  if (!dateString) return "-";
 
-const STATUS_TEXT = {
-  waiting_slip_review: "🟡 รอตรวจสลิป",
-  manual_review: "🟡 รอตรวจสลิป",
-  paid_verified: "🟢 ชำระเงินแล้ว",
-  delivering: "🔵 กำลังส่งของ",
-  delivered: "✅ ส่งแล้ว",
-  cancelled: "❌ ยกเลิก",
-};
+  return new Date(dateString).toLocaleString("th-TH", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+function getPaymentStatusText(status) {
+  const map = {
+    manual_review: "รอตรวจสลิป",
+    paid_verified: "ชำระเงินแล้ว",
+    payment_problem: "สลิปมีปัญหา",
+  };
+
+  return map[status] || status || "-";
+}
+
+function getOrderStatusText(status) {
+  const map = {
+    waiting_slip_review: "รอตรวจสลิป",
+    processing: "กำลังดำเนินการ",
+    delivered: "ส่งแล้ว",
+    cancelled: "ยกเลิก",
+  };
+
+  return map[status] || status || "-";
+}
 
 async function loadOrders() {
   try {
-    ordersEl.innerHTML = "กำลังโหลด...";
+    ordersEl.innerHTML = `<div class="notice">กำลังโหลดออเดอร์...</div>`;
 
     const res = await fetch("/api/admin/orders");
 
     if (!res.ok) {
-      ordersEl.innerHTML = "<p>โหลดข้อมูลไม่สำเร็จ กรุณาล็อกอินใหม่</p>";
-      return;
+      throw new Error("โหลดออเดอร์ไม่สำเร็จ");
     }
 
     const orders = await res.json();
-    allOrders = Array.isArray(orders) ? orders : [];
 
-    renderDashboard(allOrders);
-    applySearch();
+    renderDashboard(orders);
+    renderOrders(orders);
   } catch (err) {
-    console.error(err);
-    ordersEl.innerHTML = "<p>โหลดข้อมูลไม่สำเร็จ</p>";
+    ordersEl.innerHTML = `<div class="error">${err.message}</div>`;
   }
 }
 
 function renderDashboard(orders) {
-  const dashboard = document.querySelector("#dashboard");
-  if (!dashboard) return;
+  const today = new Date().toISOString().slice(0, 10);
 
-  const today = new Date().toLocaleDateString("th-TH");
-
-  const validOrders = orders.filter(order => order.status !== "cancelled");
-
-  const todayOrders = validOrders.filter(order => {
-    return new Date(order.createdAt).toLocaleDateString("th-TH") === today;
+  const todayOrders = orders.filter((order) => {
+    return order.createdAt && order.createdAt.slice(0, 10) === today;
   });
 
-  const todaySales = todayOrders.reduce(
-    (sum, order) => sum + Number(order.amount || 0),
-    0
-  );
+  const todaySales = todayOrders.reduce((sum, order) => {
+    return sum + Number(order.amount || 0);
+  }, 0);
 
-  const totalSales = validOrders.reduce(
-    (sum, order) => sum + Number(order.amount || 0),
-    0
-  );
+  const allSales = orders.reduce((sum, order) => {
+    return sum + Number(order.amount || 0);
+  }, 0);
 
-  dashboard.innerHTML = `
-    <div class="stat-card">
-      <b>💰 ยอดขายวันนี้</b>
-      <span>${todaySales.toLocaleString()} บาท</span>
-    </div>
-
-    <div class="stat-card">
-      <b>📦 ออเดอร์วันนี้</b>
-      <span>${todayOrders.length} รายการ</span>
-    </div>
-
-    <div class="stat-card">
-      <b>💸 ยอดขายทั้งหมด</b>
-      <span>${totalSales.toLocaleString()} บาท</span>
-    </div>
-  `;
-}
-
-function applySearch() {
-  const keyword = (searchInput?.value || "").toLowerCase().trim();
-
-  if (!keyword) {
-    renderOrders(allOrders);
-    return;
-  }
-
-  const filteredOrders = allOrders.filter(order => {
-    const statusThai = STATUS_TEXT[order.status] || "";
-    const paymentThai = STATUS_TEXT[order.paymentStatus] || "";
-
-    const searchableText = [
-      order.id,
-      order.customerName,
-      order.customerContact,
-      order.receiverLineId,
-      order.stickerUrl,
-      order.status,
-      statusThai,
-      order.paymentStatus,
-      paymentThai,
-      order.paymentMessage,
-      order.note,
-      order.amount,
-      order.createdAt,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(keyword);
-  });
-
-  renderOrders(filteredOrders);
+  if (totalSalesEl) totalSalesEl.textContent = `${todaySales} บาท`;
+  if (todayOrdersEl) todayOrdersEl.textContent = `${todayOrders.length} รายการ`;
+  if (allSalesEl) allSalesEl.textContent = `${allSales} บาท`;
 }
 
 function renderOrders(orders) {
   if (!orders.length) {
-    ordersEl.innerHTML = `<div class="card">ไม่พบออเดอร์</div>`;
+    ordersEl.innerHTML = `<div class="notice">ไม่พบออเดอร์</div>`;
     return;
   }
 
   ordersEl.innerHTML = orders
-    .map(order => {
-      const statusText = STATUS_TEXT[order.status] || order.status || "-";
-      const paymentText = STATUS_TEXT[order.paymentStatus] || order.paymentStatus || "-";
-
+    .map((order) => {
       return `
         <article class="order-card">
           <div class="order-top">
-            <h3>#${escapeHtml(order.id)}</h3>
-            <span>${formatDate(order.createdAt)}</span>
+            <div>
+              <h3>ออเดอร์ #${order.id}</h3>
+              <p class="muted">${formatDate(order.createdAt)}</p>
+            </div>
+            <b>${Number(order.amount || 0)} บาท</b>
           </div>
 
-          <p><b>ลูกค้า:</b> ${escapeHtml(order.customerName || "-")}</p>
-          <p><b>ติดต่อ:</b> ${escapeHtml(order.customerContact || "-")}</p>
+          <p><b>สินค้า:</b> <a href="${order.stickerUrl}" target="_blank">เปิดลิงก์สินค้า</a></p>
+          <p><b>LINE ID ผู้รับ:</b> <span class="line-id">${order.receiverLineId || "-"}</span></p>
+          <p><b>ชื่อลูกค้า:</b> ${order.customerName || "-"}</p>
+          <p><b>ช่องทางติดต่อ:</b> ${order.customerContact || "-"}</p>
+          <p><b>หมายเหตุ:</b> ${order.note || "-"}</p>
 
-          <p>
-            <b>LINE ID:</b>
-            <span class="line-id">${escapeHtml(order.receiverLineId || "-")}</span>
-            <button class="mini-btn" data-copy="${escapeAttr(order.receiverLineId || "")}">
-              📋 Copy
-            </button>
-          </p>
-
-          <p><b>ยอด:</b> ${Number(order.amount || 0).toLocaleString()} บาท</p>
-          <p><b>สถานะงาน:</b> ${statusText}</p>
-          <p><b>สถานะสลิป:</b> ${paymentText}</p>
-
-          <p>
-            <b>สินค้า:</b>
-            <a href="${escapeAttr(order.stickerUrl || "#")}" target="_blank">เปิดลิงก์</a>
-          </p>
+          <p><b>สถานะชำระเงิน:</b> ${getPaymentStatusText(order.paymentStatus)}</p>
+          <p><b>สถานะออเดอร์:</b> ${getOrderStatusText(order.status)}</p>
 
           <p>
             <b>สลิป:</b>
-            <a href="${escapeAttr(order.slipUrl || "#")}" target="_blank">ดูสลิป</a>
+            ${
+              order.slipUrl
+                ? `<a href="${order.slipUrl}" target="_blank">ดูสลิป</a>`
+                : "-"
+            }
           </p>
 
-          <p><b>หมายเหตุ:</b> ${escapeHtml(order.note || "-")}</p>
-
           <div class="actions">
-            <button data-status="paid_verified" data-id="${escapeAttr(order.id)}">
-              🟢 ตรวจสลิปผ่าน
+            <button onclick="updateOrder('${order.id}', 'waiting_slip_review', 'manual_review')">
+              รอตรวจสลิป
             </button>
 
-            <button data-status="delivering" data-id="${escapeAttr(order.id)}">
-              🔵 กำลังส่ง
+            <button onclick="updateOrder('${order.id}', 'processing', 'paid_verified')">
+              ชำระเงินแล้ว
             </button>
 
-            <button data-status="delivered" data-id="${escapeAttr(order.id)}">
-              ✅ ส่งแล้ว
+            <button onclick="updateOrder('${order.id}', 'waiting_slip_review', 'payment_problem')">
+              ยอดไม่ตรง / สลิปไม่ชัด
             </button>
 
-            <button data-status="cancelled" data-id="${escapeAttr(order.id)}">
-              ❌ ยกเลิก
+            <button onclick="updateOrder('${order.id}', 'delivered', 'paid_verified')">
+              ส่งแล้ว
+            </button>
+
+            <button onclick="updateOrder('${order.id}', 'cancelled', 'payment_problem')">
+              ยกเลิก
             </button>
           </div>
         </article>
@@ -181,125 +135,29 @@ function renderOrders(orders) {
     .join("");
 }
 
-async function updateOrder(id, status) {
+async function updateOrder(id, status, paymentStatus) {
   try {
-    const body = {
-      status,
-    };
-
-    if (status === "paid_verified") {
-      body.paymentStatus = "paid_verified";
-    }
-
     const res = await fetch(`/api/admin/orders/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        status,
+        paymentStatus,
+      }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      alert("อัปเดตสถานะไม่สำเร็จ");
-      return;
+      throw new Error(data.error || "อัปเดตไม่สำเร็จ");
     }
 
     await loadOrders();
   } catch (err) {
-    console.error(err);
-    alert("อัปเดตสถานะไม่สำเร็จ");
+    alert(err.message);
   }
 }
-
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    alert("คัดลอก LINE ID แล้ว");
-  } catch {
-    alert("คัดลอกไม่ได้ ลองลากคัดลอกเอง");
-  }
-}
-
-async function downloadBackup() {
-  try {
-    const res = await fetch("/api/admin/orders");
-
-    if (!res.ok) {
-      alert("Backup ไม่สำเร็จ กรุณาล็อกอินใหม่");
-      return;
-    }
-
-    const orders = await res.json();
-
-    const blob = new Blob([JSON.stringify(orders, null, 2)], {
-      type: "application/json",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const date = new Date().toISOString().slice(0, 10);
-
-    a.href = url;
-    a.download = `orders-backup-${date}.json`;
-
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error(err);
-    alert("Backup ไม่สำเร็จ");
-  }
-}
-
-function formatDate(dateString) {
-  if (!dateString) return "-";
-
-  try {
-    return new Date(dateString).toLocaleString("th-TH");
-  } catch {
-    return dateString;
-  }
-}
-
-function escapeHtml(str = "") {
-  return String(str).replace(/[&<>"']/g, m => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  }[m]));
-}
-
-function escapeAttr(str = "") {
-  return escapeHtml(str).replace(/`/g, "&#096;");
-}
-
-if (searchInput) {
-  searchInput.addEventListener("input", applySearch);
-}
-
-if (backupBtn) {
-  backupBtn.addEventListener("click", downloadBackup);
-}
-
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", loadOrders);
-}
-
-ordersEl.addEventListener("click", event => {
-  const copyBtn = event.target.closest("[data-copy]");
-  if (copyBtn) {
-    copyText(copyBtn.dataset.copy);
-    return;
-  }
-
-  const statusBtn = event.target.closest("[data-status]");
-  if (statusBtn) {
-    updateOrder(statusBtn.dataset.id, statusBtn.dataset.status);
-  }
-});
 
 loadOrders();
