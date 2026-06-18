@@ -96,7 +96,7 @@
           </div>
 
           <button type="button" class="green-btn" onclick="useCalculatedPrice()">
-            ใช้ราคานี้ในฟอร์ม
+            ใช้ราคานี้ในฟอร์ม + สร้าง QR
           </button>
 
           <small class="price-note">ราคาคำนวณอัตโนมัติ นอกเหนือจากนี้กรุณาติดต่อแอดมิน*-*</small>
@@ -134,8 +134,8 @@
 
           <form id="orderForm">
             <label>
-              ลิงก์สติ๊กเกอร์ / ธีม LINE
-              <input name="stickerUrl" type="url" placeholder="https://store.line.me/stickershop/product/..." required />
+              ลิงก์สติ๊กเกอร์ / ธีม / อิโมจิ / เมโลดี้ LINE
+              <input name="stickerUrl" type="url" placeholder="https://store.line.me/..." required />
             </label>
 
             <label>
@@ -194,7 +194,16 @@
           </div>
 
           <div class="mini-note">
-            โอนแล้วแนบสลิปในฟอร์ม เพื่อให้แอดมินตรวจสอบและดำเนินการต่อ
+            เลือก Token แล้วกด “ใช้ราคานี้ในฟอร์ม + สร้าง QR” เพื่อสร้าง QR พร้อมเพย์ตามยอดโอน
+          </div>
+
+          <div id="promptpayBox" class="promptpay-box hidden">
+            <h3>QR พร้อมเพย์</h3>
+            <p id="promptpayAmount">ยอดโอน 0 บาท</p>
+            <img id="promptpayQr" alt="PromptPay QR" />
+            <a id="downloadQr" class="qr-download" download="gifthub-promptpay.png">
+              บันทึก QR
+            </a>
           </div>
         </aside>
       </div>

@@ -38,9 +38,7 @@ function calculatePrice(token) {
   const linePrice = LINE_PRICE_TABLE[token];
   const ourPrice = OUR_PRICE_TABLE[token];
 
-  if (!linePrice || !ourPrice) {
-    return null;
-  }
+  if (!linePrice || !ourPrice) return null;
 
   const saveBaht = linePrice - ourPrice;
   const savePercent = Math.round((saveBaht / linePrice) * 100);
@@ -57,9 +55,7 @@ function calculatePrice(token) {
 function renderPriceCalculator(token) {
   currentPrice = calculatePrice(token);
 
-  if (!currentPrice) {
-    return;
-  }
+  if (!currentPrice) return;
 
   linePriceEl.textContent = `${currentPrice.linePrice} บาท`;
   ourPriceEl.textContent = `${currentPrice.ourPrice} บาท`;
@@ -68,7 +64,10 @@ function renderPriceCalculator(token) {
 }
 
 async function generatePaymentQr(amount) {
-  if (!promptpayBox || !promptpayQr || !promptpayAmount || !downloadQr) return;
+  if (!promptpayBox || !promptpayQr || !promptpayAmount || !downloadQr) {
+    console.error("ไม่พบ element สำหรับ QR พร้อมเพย์");
+    return;
+  }
 
   promptpayBox.classList.remove("hidden");
   promptpayAmount.textContent = "กำลังสร้าง QR...";
@@ -88,6 +87,7 @@ async function generatePaymentQr(amount) {
     downloadQr.href = data.qrDataUrl;
   } catch (err) {
     promptpayAmount.textContent = err.message;
+    console.error(err);
   }
 }
 
@@ -99,7 +99,11 @@ function useCalculatedPrice() {
 
   amountInput.value = currentPrice.ourPrice;
   generatePaymentQr(currentPrice.ourPrice);
-  amountInput.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  const paymentBox = document.querySelector(".payment-box");
+  if (paymentBox) {
+    paymentBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 if (tokenButtons) {
@@ -126,49 +130,53 @@ if (tokenButtons) {
   }
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  result.innerHTML = `<div class="notice">กำลังส่งออเดอร์...</div>`;
+    result.innerHTML = `<div class="notice">กำลังส่งออเดอร์...</div>`;
 
-  const formData = new FormData(form);
+    const formData = new FormData(form);
 
-  try {
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data.error || "ส่งออเดอร์ไม่สำเร็จ");
+      if (!res.ok) {
+        throw new Error(data.error || "ส่งออเดอร์ไม่สำเร็จ");
+      }
+
+      result.innerHTML = `
+        <div class="success">
+          <h3>ส่งออเดอร์สำเร็จ</h3>
+          <p>เลขออเดอร์: <b>${data.orderId}</b></p>
+          <p><a href="/status.html">ไปหน้าเช็กสถานะ</a></p>
+        </div>
+      `;
+
+      form.reset();
+
+      const defaultBtn = document.querySelector('[data-token="50"]');
+
+      document.querySelectorAll("[data-token]").forEach((button) => {
+        button.classList.remove("active");
+      });
+
+      if (defaultBtn) {
+        defaultBtn.classList.add("active");
+        tokenInput.value = "50";
+        renderPriceCalculator("50");
+      }
+
+      if (promptpayBox) {
+        promptpayBox.classList.add("hidden");
+      }
+    } catch (err) {
+      result.innerHTML = `<div class="error">${err.message}</div>`;
     }
-
-    result.innerHTML = `
-      <div class="success">
-        <h3>ส่งออเดอร์สำเร็จ</h3>
-        <p>เลขออเดอร์: <b>${data.orderId}</b></p>
-        <p><a href="/status.html">ไปหน้าเช็กสถานะ</a></p>
-      </div>
-    `;
-
-    form.reset();
-
-    const defaultBtn = document.querySelector('[data-token="50"]');
-
-    document.querySelectorAll("[data-token]").forEach((button) => {
-      button.classList.remove("active");
-    });
-
-    if (defaultBtn) {
-      defaultBtn.classList.add("active");
-      tokenInput.value = "50";
-      renderPriceCalculator("50");
-    }
-
-    if (promptpayBox) promptpayBox.classList.add("hidden");
-  } catch (err) {
-    result.innerHTML = `<div class="error">${err.message}</div>`;
-  }
-});
+  });
+}
