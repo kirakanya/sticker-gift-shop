@@ -11,6 +11,10 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -29,7 +33,9 @@ function checkAdmin(req, res, next) {
   }
 
   const base64 = auth.split(" ")[1];
-  const [username, password] = Buffer.from(base64, "base64").toString().split(":");
+  const [username, password] = Buffer.from(base64, "base64")
+    .toString()
+    .split(":");
 
   if (
     username === process.env.ADMIN_USERNAME &&
@@ -97,23 +103,42 @@ function mapOrderToDb(order) {
   };
 }
 
+function isValidLineProductUrl(url) {
+  try {
+    const u = new URL(url);
+
+    const allowedHosts = [
+      "line.me",
+      "store.line.me",
+      "music.line.me",
+      "lin.ee",
+    ];
+
+    return allowedHosts.some(
+      (host) => u.hostname === host || u.hostname.endsWith(`.${host}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function uploadSlipToSupabase(file, orderId) {
   const ext = path.extname(file.originalname || "") || ".jpg";
   const fileName = `${orderId}${ext}`;
-  const filePath = `slips/${fileName}`;
 
   const { error } = await supabase.storage
     .from("slips")
-    .upload(filePath, file.buffer, {
+    .upload(fileName, file.buffer, {
       contentType: file.mimetype,
       upsert: true,
     });
 
-  if (error) throw error;
+  if (error) {
+    console.error("Upload slip error:", error);
+    throw error;
+  }
 
-  const { data } = supabase.storage
-    .from("slips")
-    .getPublicUrl(filePath);
+  const { data } = supabase.storage.from("slips").getPublicUrl(fileName);
 
   return {
     slipFile: fileName,
@@ -127,7 +152,11 @@ async function getAllOrders() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error("Get orders error:", error);
+    throw error;
+  }
+
   return data.map(mapOrderFromDb);
 }
 
@@ -139,12 +168,23 @@ async function getOrderById(id) {
     .single();
 
   if (error) return null;
+
   return mapOrderFromDb(data);
 }
 
 async function createOrder(order) {
-  const { error } = await supabase.from("orders").insert(mapOrderToDb(order));
-  if (error) throw error;
+  const { data, error } = await supabase
+    .from("orders")
+    .insert(mapOrderToDb(order))
+    .select("*")
+    .single();
+
+  if (error) {
+    console.error("Create order error:", error);
+    throw error;
+  }
+
+  return mapOrderFromDb(data);
 }
 
 async function updateOrder(id, updates) {
@@ -162,17 +202,12 @@ async function updateOrder(id, updates) {
     .select("*")
     .single();
 
-  if (error) throw error;
-  return mapOrderFromDb(data);
-}
-
-function isValidLineStickerUrl(url) {
-  try {
-    const u = new URL(url);
-    return u.hostname.includes("line.me") || u.hostname.includes("store.line.me");
-  } catch {
-    return false;
+  if (error) {
+    console.error("Update order error:", error);
+    throw error;
   }
+
+  return mapOrderFromDb(data);
 }
 
 async function verifySlip() {
@@ -202,6 +237,9 @@ async function notifyDiscord(order) {
       manual_review: "รอตรวจสลิป",
       paid_verified: "ชำระเงินแล้ว",
       payment_problem: "สลิปมีปัญหา",
+      waiting_slip_review: "รอตรวจสลิป",
+      delivered: "ส่งแล้ว",
+      cancelled: "ยกเลิก",
     }[order.paymentStatus] || order.paymentStatus;
 
   try {
@@ -216,7 +254,7 @@ async function notifyDiscord(order) {
             { name: "ชื่อลูกค้า", value: order.customerName || "-", inline: true },
             { name: "ช่องทางติดต่อ", value: order.customerContact || "-", inline: true },
             { name: "ยอดโอน", value: `${order.amount} บาท`, inline: true },
-            { name: "สถานะ", value: statusText, inline: true },
+            { name: "สถานะ", value: statusText || "-", inline: true },
             { name: "หมายเหตุ", value: order.note || "-", inline: false },
             { name: "สลิป", value: order.slipUrl || "-", inline: false },
           ],
@@ -244,8 +282,10 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
       return res.status(400).json({ error: "กรอกข้อมูลไม่ครบ" });
     }
 
-    if (!isValidLineStickerUrl(stickerUrl)) {
-      return res.status(400).json({ error: "ลิงก์ต้องเป็นลิงก์จาก LINE Store" });
+    if (!isValidLineProductUrl(stickerUrl)) {
+      return res.status(400).json({
+        error: "ลิงก์ต้องเป็นลิงก์สินค้าจาก LINE เช่น Sticker / Theme / Melody",
+      });
     }
 
     if (!req.file) {
@@ -279,18 +319,22 @@ app.post("/api/orders", upload.single("slip"), async (req, res) => {
       updatedAt: null,
     };
 
-    await createOrder(order);
-    await notifyDiscord(order);
+    const savedOrder = await createOrder(order);
+
+    await notifyDiscord(savedOrder);
 
     res.json({
       ok: true,
-      orderId: id,
-      paymentStatus: order.paymentStatus,
+      orderId: savedOrder.id,
+      paymentStatus: savedOrder.paymentStatus,
       message: "ส่งออเดอร์สำเร็จ",
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "ระบบมีปัญหา กรุณาลองใหม่" });
+    console.error("Create order failed:", err);
+    res.status(500).json({
+      error: "ระบบมีปัญหา กรุณาลองใหม่",
+      detail: err.message,
+    });
   }
 });
 
@@ -312,7 +356,7 @@ app.get("/api/orders/:id", async (req, res) => {
       updatedAt: order.updatedAt || null,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Get order status failed:", err);
     res.status(500).json({ error: "ระบบมีปัญหา" });
   }
 });
@@ -322,7 +366,7 @@ app.get("/api/admin/orders", checkAdmin, async (req, res) => {
     const orders = await getAllOrders();
     res.json(orders);
   } catch (err) {
-    console.error(err);
+    console.error("Load admin orders failed:", err);
     res.status(500).json({ error: "โหลดออเดอร์ไม่สำเร็จ" });
   }
 });
@@ -338,7 +382,7 @@ app.patch("/api/admin/orders/:id", checkAdmin, async (req, res) => {
 
     res.json({ ok: true, order });
   } catch (err) {
-    console.error(err);
+    console.error("Update order failed:", err);
     res.status(500).json({ error: "อัปเดตออเดอร์ไม่สำเร็จ" });
   }
 });
